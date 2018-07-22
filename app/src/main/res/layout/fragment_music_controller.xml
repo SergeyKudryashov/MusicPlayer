@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorBackground"
+    android:padding="@dimen/padding_small">
+
+    <TextView
+        android:id="@+id/song_name_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Song Song" />
+
+    <TextView
+        android:id="@+id/artist_name_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorAccent"
+        android:textSize="16sp"
+        android:paddingBottom="@dimen/padding_medium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/song_name_text_view"
+        tools:text="Artist" />
+
+    <TextView
+        android:id="@+id/time_progress_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/progress_seek_bar"
+        tools:text="0:00" />
+
+    <SeekBar
+        android:id="@+id/progress_seek_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/padding_medium"
+        android:progress="1"
+        app:layout_constraintEnd_toStartOf="@id/duration_text_view"
+        app:layout_constraintStart_toEndOf="@id/time_progress_text_view"
+        app:layout_constraintTop_toBottomOf="@id/artist_name_text_view" />
+
+    <TextView
+        android:id="@+id/duration_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/progress_seek_bar"
+        tools:text="3:40" />
+
+    <ImageButton
+        android:id="@+id/rewind_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/forward_rewind_button_selector"
+        android:contentDescription="@string/reward_button_content_description"
+        android:padding="@dimen/padding_small"
+        android:src="@drawable/round_fast_rewind_white_36"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/play_pause_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progress_seek_bar" />
+
+    <ImageButton
+        android:id="@+id/play_pause_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/play_pause_button_selector"
+        android:contentDescription="@string/play_pause_button_content_description"
+        android:padding="@dimen/padding_medium"
+        android:src="@drawable/round_play_arrow_white_36"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progress_seek_bar" />
+
+    <ImageButton
+        android:id="@+id/forward_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/forward_rewind_button_selector"
+        android:contentDescription="@string/forward_button_content_description"
+        android:padding="@dimen/padding_small"
+        android:src="@drawable/round_fast_forward_white_36"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/play_pause_button"
+        app:layout_constraintTop_toBottomOf="@id/progress_seek_bar" />
+
+</android.support.constraint.ConstraintLayout>

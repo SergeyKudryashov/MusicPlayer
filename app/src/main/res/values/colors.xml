@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#37474F</color>
+    <color name="colorPrimaryDark">#263238</color>
+    <color name="colorAccent">#EA005E</color>
+    <color name="colorBackground">#182024</color>
+    <color name="forward_rewind_button_background_pressed">#22ffffff</color>
+    <color name="play_pause_button_background_pressed">#a60043</color>
+
+</resources>
