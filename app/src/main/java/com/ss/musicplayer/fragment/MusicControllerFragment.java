@@ -2,16 +2,11 @@ package com.ss.musicplayer.fragment;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,28 +24,12 @@ import java.util.Locale;
 
 public class MusicControllerFragment extends Fragment {
 
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mBinder = (MusicPlayerService.LocalBinder) service;
-            prepareMusicController(mMusicViewModel.getSongList().getValue().get(0));
-            mIsBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mBinder = null;
-            mIsBound = false;
-        }
-    };
-
     private Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
             playCycle();
         }
     };
-
 
     private TextView mSongNameTextView;
     private TextView mArtistNameTextName;
@@ -61,22 +40,28 @@ public class MusicControllerFragment extends Fragment {
     private ImageButton mForwardButton;
     private SeekBar mProgressSeekBar;
 
-
-    private MusicPlayerService.LocalBinder mBinder;
-    private boolean mIsBound;
-    private boolean mStoppedByTouchingSeekBar;
     private Handler mHandler = new Handler();
-
     private MusicViewModel mMusicViewModel;
+    private MusicPlayerService.LocalBinder mBinder;
+
+    private boolean mStoppedByTouchingSeekBar;
+    private Integer mPlayingSongId;
 
     public MusicControllerFragment() {
     }
 
-    public static MusicControllerFragment newInstance() {
+    public static MusicControllerFragment newInstance(MusicPlayerService.LocalBinder binder) {
         MusicControllerFragment fragment = new MusicControllerFragment();
         Bundle args = new Bundle();
+        args.putSerializable("binder", binder);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mBinder = (MusicPlayerService.LocalBinder) getArguments().getSerializable("binder");
     }
 
     @Override
@@ -87,7 +72,6 @@ public class MusicControllerFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        startMusicPlayerService();
         init(view);
     }
 
@@ -140,6 +124,13 @@ public class MusicControllerFragment extends Fragment {
         mRewindButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mBinder.getCurrentPosition() <= 5) {
+                    int i = mMusicViewModel.getPlayingSongId().getValue() - 1;
+                    if (i < 0) {
+                        i = i + mMusicViewModel.getSongList().getValue().size();
+                    }
+                    mMusicViewModel.getPlayingSongId().setValue(i);
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     mProgressSeekBar.setProgress(0, true);
                 } else {
@@ -152,44 +143,57 @@ public class MusicControllerFragment extends Fragment {
         mForwardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                int i = mMusicViewModel.getPlayingSongId().getValue() + 1;
+                int s = mMusicViewModel.getSongList().getValue().size();
+                mMusicViewModel.getPlayingSongId().setValue(i % s);
             }
         });
 
         mMusicViewModel = ViewModelProviders.of(getActivity()).get(MusicViewModel.class);
-        mMusicViewModel.getPlayingSong().observe(this, new Observer<Song>() {
+        mMusicViewModel.getPlayingSongId().observe(getActivity(), new Observer<Integer>() {
             @Override
-            public void onChanged(Song song) {
-                prepareMusicController(song);
-                play();
+            public void onChanged(@Nullable Integer integer) {
+                if (!integer.equals(mPlayingSongId)) {
+                    prepareMusicController(integer, mPlayingSongId != null);
+                } else {
+                    if (mBinder.isPlaying()) {
+                        pause();
+                    } else {
+                        play();
+                    }
+                }
             }
         });
     }
 
-    private void startMusicPlayerService() {
-        Intent intent = new Intent(getActivity().getApplicationContext(), MusicPlayerService.class);
-        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
+    private void prepareMusicController(Integer position, boolean play) {
+        Song song = mMusicViewModel.getSongList().getValue().get(position);
 
-    private void prepareMusicController(Song song) {
         mProgressSeekBar.setProgress(0);
         mSongNameTextView.setText(song.getTitle());
         mArtistNameTextName.setText(song.getArtist());
 
         mBinder.set(song.getData());
+
         mProgressSeekBar.setMax(mBinder.getDuration());
         mDurationTextView.setText(getTimeFormattedString(mBinder.getDuration()));
+        mPlayingSongId = position;
+        if (play) {
+            play();
+        }
     }
 
     private void play() {
         mBinder.play();
         playCycle();
         mPlayPauseButton.setImageDrawable(getResources().getDrawable(R.drawable.round_pause_white_36));
+        mMusicViewModel.getIsSongPlaying().setValue(true);
     }
 
     private void pause() {
         mBinder.pause();
         mPlayPauseButton.setImageDrawable(getResources().getDrawable(R.drawable.round_play_arrow_white_36));
+        mMusicViewModel.getIsSongPlaying().setValue(false);
     }
 
     private void stop() {

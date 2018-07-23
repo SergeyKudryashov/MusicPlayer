@@ -14,6 +14,7 @@ import android.support.v4.app.NotificationCompat;
 import com.ss.musicplayer.R;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 public class MusicPlayerService extends IntentService {
 
@@ -89,7 +90,7 @@ public class MusicPlayerService extends IntentService {
         return mPlayer.isPlaying();
     }
 
-    public class LocalBinder extends Binder {
+    public class LocalBinder extends Binder implements Serializable {
 
         public void play() {
             playMusic();

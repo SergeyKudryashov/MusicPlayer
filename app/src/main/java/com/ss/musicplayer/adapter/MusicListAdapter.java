@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.ss.musicplayer.R;
 import com.ss.musicplayer.model.Song;
+import com.ss.musicplayer.service.MusicPlayerService;
+import com.ss.musicplayer.viewmodel.MusicViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +22,14 @@ public class MusicListAdapter extends RecyclerView.Adapter<MusicListAdapter.Musi
     private Context mContext;
     private OnItemClickListener mListener;
     private List<Song> mSongList;
-    private Long mLastPressed;
+    private MusicPlayerService.LocalBinder mBinder;
+    private MusicViewModel mMusicViewModel;
 
-    public MusicListAdapter(Context context) {
+    public MusicListAdapter(Context context, MusicPlayerService.LocalBinder binder, MusicViewModel viewModel) {
         mContext = context;
         mSongList = new ArrayList<>();
+        mBinder = binder;
+        mMusicViewModel = viewModel;
     }
 
     @NonNull
@@ -63,10 +68,11 @@ public class MusicListAdapter extends RecyclerView.Adapter<MusicListAdapter.Musi
             mArtistNameImageView = itemView.findViewById(R.id.artist_name_text_view);
         }
 
-        void bind(Song song, final int position) {
+        void bind(Song song, final Integer position) {
             mSongNameImageView.setText(song.getTitle());
             mArtistNameImageView.setText(song.getArtist());
-            if (song.getId().equals(mLastPressed)) {
+
+            if (position.equals(mMusicViewModel.getPlayingSongId().getValue()) && mBinder.isPlaying()) {
                 mPlayPauseImageView.setImageDrawable(mContext.getDrawable(R.drawable.round_pause_white_36));
             } else {
                 mPlayPauseImageView.setImageDrawable(mContext.getDrawable(R.drawable.round_play_arrow_white_36));
@@ -75,15 +81,11 @@ public class MusicListAdapter extends RecyclerView.Adapter<MusicListAdapter.Musi
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mSongList.get(getAdapterPosition()).getId().equals(mLastPressed)) {
-                        mLastPressed = null;
-                    }
-                    else {
-                        mLastPressed = mSongList.get(getAdapterPosition()).getId();
-                    }
+                    if (mListener == null)
+                        return;
+
+                    mListener.onClickItem(position);
                     notifyDataSetChanged();
-                    if (mListener != null)
-                        mListener.onClickItem(mSongList.get(position));
                 }
             });
         }
@@ -94,6 +96,6 @@ public class MusicListAdapter extends RecyclerView.Adapter<MusicListAdapter.Musi
     }
 
     public interface OnItemClickListener {
-        void onClickItem(Song song);
+        void onClickItem(int position);
     }
 }

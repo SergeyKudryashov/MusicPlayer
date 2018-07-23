@@ -12,7 +12,8 @@ import java.util.List;
 public class MusicViewModel extends AndroidViewModel {
 
     private MutableLiveData<List<Song>> mSongList;
-    private MutableLiveData<Song> mPlayingSong;
+    private MutableLiveData<Integer> mPlayingSongId;
+    private MutableLiveData<Boolean> mIsSongPlaying;
 
     public MusicViewModel(@NonNull Application application) {
         super(application);
@@ -25,10 +26,17 @@ public class MusicViewModel extends AndroidViewModel {
         return mSongList;
     }
 
-    public MutableLiveData<Song> getPlayingSong() {
-        if (mPlayingSong == null) {
-            mPlayingSong = new MutableLiveData<>();
+    public MutableLiveData<Integer> getPlayingSongId() {
+        if (mPlayingSongId == null) {
+            mPlayingSongId = new MutableLiveData<>();
         }
-        return mPlayingSong;
+        return mPlayingSongId;
+    }
+
+    public MutableLiveData<Boolean> getIsSongPlaying() {
+        if (mIsSongPlaying == null) {
+            mIsSongPlaying = new MutableLiveData<>();
+        }
+        return mIsSongPlaying;
     }
 }

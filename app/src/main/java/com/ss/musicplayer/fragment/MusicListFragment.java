@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import com.ss.musicplayer.R;
 import com.ss.musicplayer.adapter.MusicListAdapter;
 import com.ss.musicplayer.model.Song;
+import com.ss.musicplayer.service.MusicPlayerService;
 import com.ss.musicplayer.viewmodel.MusicViewModel;
 
 import java.util.ArrayList;
@@ -35,11 +36,12 @@ public class MusicListFragment extends Fragment {
     private MusicListAdapter mMusicListAdapter;
 
     private MusicViewModel mMusicViewModel;
+    private MusicPlayerService.LocalBinder mBinder;
 
     private MusicListAdapter.OnItemClickListener mOnClickListener = new MusicListAdapter.OnItemClickListener() {
         @Override
-        public void onClickItem(Song song) {
-            mMusicViewModel.getPlayingSong().setValue(song);
+        public void onClickItem(int position) {
+            mMusicViewModel.getPlayingSongId().setValue(position);
         }
     };
 
@@ -47,11 +49,18 @@ public class MusicListFragment extends Fragment {
     public MusicListFragment() {
     }
 
-    public static MusicListFragment newInstance() {
+    public static MusicListFragment newInstance(MusicPlayerService.LocalBinder binder) {
         MusicListFragment fragment = new MusicListFragment();
         Bundle args = new Bundle();
+        args.putSerializable("binder", binder);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mBinder = (MusicPlayerService.LocalBinder) getArguments().getSerializable("binder");
     }
 
     @Override
@@ -67,14 +76,6 @@ public class MusicListFragment extends Fragment {
     }
 
     private void init(View view) {
-        mMusicListAdapter = new MusicListAdapter(getActivity());
-        mMusicListAdapter.setOnItemClickListener(mOnClickListener);
-
-        RecyclerView recyclerView = view.findViewById(R.id.music_list_recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        recyclerView.setAdapter(mMusicListAdapter);
-
-
         mMusicViewModel = ViewModelProviders.of(getActivity()).get(MusicViewModel.class);
         mMusicViewModel.getSongList().observe(this, new Observer<List<Song>>() {
             @Override
@@ -82,6 +83,19 @@ public class MusicListFragment extends Fragment {
                 mMusicListAdapter.setList(songs);
             }
         });
+        mMusicViewModel.getIsSongPlaying().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable Boolean aBoolean) {
+                mMusicListAdapter.notifyDataSetChanged();
+            }
+        });
+
+        mMusicListAdapter = new MusicListAdapter(getActivity(), mBinder, mMusicViewModel);
+        mMusicListAdapter.setOnItemClickListener(mOnClickListener);
+
+        RecyclerView recyclerView = view.findViewById(R.id.music_list_recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(mMusicListAdapter);
     }
 
     private boolean hasReadExternalStoragePermission() {
@@ -132,7 +146,9 @@ public class MusicListFragment extends Fragment {
             Song song = new Song(id, artist, title, data, displayName);
             list.add(song);
         } while (cursor.moveToNext());
+        cursor.close();
 
         mMusicViewModel.getSongList().setValue(list);
+        mMusicViewModel.getPlayingSongId().setValue(0);
     }
 }
